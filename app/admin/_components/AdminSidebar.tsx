@@ -131,12 +131,7 @@ export default function AdminSidebar({ isOpen, onClose }: Props) {
         <div className="px-4 py-4 border-t border-zinc-100">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-50">
             <div className="w-9 h-9 rounded-full overflow-hidden border border-zinc-100 flex-shrink-0 relative">
-              <Image
-                src={adminAvatar}
-                alt="Admin"
-                fill
-                className="object-cover"
-              />
+              <img src={adminAvatar} alt="Admin" className="object-cover" />
             </div>
             <div className="leading-none min-w-0">
               <p className="text-xs font-semibold text-zinc-800 truncate">

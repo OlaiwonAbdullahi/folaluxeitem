@@ -3,6 +3,7 @@ import { Figtree, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { CartProvider } from "./_components/CartContext";
+import { Toaster } from "@/components/ui/sonner";
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <CartProvider>{children}</CartProvider>
+        <Toaster />
       </body>
     </html>
   );
