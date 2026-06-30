@@ -92,6 +92,22 @@ function CallbackInner() {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "mm", format: "a4" });
 
+    // Load the brand logo as a data URL for embedding. Falls back to a text-only
+    // header if it can't be fetched (e.g. offline) so the receipt still renders.
+    const logo = await fetch("/logo.png")
+      .then((r) => (r.ok ? r.blob() : null))
+      .then(
+        (b) =>
+          b &&
+          new Promise<string | null>((resolve) => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result as string);
+            fr.onerror = () => resolve(null);
+            fr.readAsDataURL(b);
+          }),
+      )
+      .catch(() => null);
+
     // jsPDF's built-in fonts have no ₦ glyph, so format money as "NGN 1,234".
     const money = (n: number) =>
       `NGN ${new Intl.NumberFormat("en-NG", { minimumFractionDigits: 0 }).format(n)}`;
@@ -102,13 +118,20 @@ function CallbackInner() {
     const colPrice = 162;
     let y = 22;
 
-    // Header
+    // Header — logo (if available) followed by the brand wordmark.
+    let brandX = left;
+    if (logo) {
+      const logoH = 15;
+      const logoW = logoH * (127 / 118); // preserve the logo's aspect ratio
+      doc.addImage(logo, "PNG", left, y - 11, logoW, logoH);
+      brandX = left + logoW + 4;
+    }
     doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(190, 18, 60);
-    doc.text("FolaLuxe", left, y);
+    doc.text("FolaLuxe", brandX, y);
     doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(107, 114, 128);
-    doc.text("Payment Receipt", left, y + 6);
+    doc.text("Payment Receipt", brandX, y + 6);
     doc.setFont("helvetica", "bold").setTextColor(5, 150, 105);
-    doc.text("PAID", left, y + 12);
+    doc.text("PAID", brandX, y + 12);
 
     const date = new Date(order.createdAt).toLocaleString("en-NG", {
       dateStyle: "medium",
