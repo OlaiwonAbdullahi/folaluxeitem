@@ -63,7 +63,7 @@ export default function ProductCard({
 
   return (
     <Link
-      href={`/shop/${product._id}`}
+      href={`/shop/${product.slug || product._id}`}
       className={`group flex flex-col bg-white rounded-lg overflow-hidden border border-[var(--border)] hover:shadow-md transition-shadow duration-300 ${className}`}
     >
       {/* Image Container */}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { CartProvider } from "./_components/CartContext";
 import { Toaster } from "@/components/ui/sonner";
+import { siteConfig } from "@/lib/site";
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -20,15 +21,35 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "FolaLuxe — Premium Fashion Boutique",
-  description:
-    "Shop curated luxury clothing and designer bags at FolaLuxe. Elevate your wardrobe with our handpicked collection of premium fashion pieces.",
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: siteConfig.title,
+    template: `%s — ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
   keywords: ["luxury fashion", "bags", "clothing", "boutique", "FolaLuxe"],
   openGraph: {
-    title: "FolaLuxe — Premium Fashion Boutique",
-    description: "Curated luxury clothing and designer bags.",
-    siteName: "FolaLuxe",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    url: siteConfig.url,
+    locale: "en_NG",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    site: siteConfig.twitter,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 

@@ -4,9 +4,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About FolaLuxe — Our Story",
+  title: "Our Story",
   description:
     "Learn about FolaLuxe, a premium fashion boutique born from a love of quality clothing and luxury bags. Shop our curated collection and follow us on TikTok @folaluxeitems.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

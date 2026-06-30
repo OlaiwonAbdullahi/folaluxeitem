@@ -10,9 +10,11 @@ import NewsletterSection from "./_components/NewsletterSection";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FolaLuxe — Premium Fashion Boutique",
+  // `absolute` bypasses the root layout's "%s — FolaLuxe" title template.
+  title: { absolute: "FolaLuxe — Premium Fashion Boutique" },
   description:
     "Shop curated luxury clothing and bags at FolaLuxe. Elevate your wardrobe with our handpicked premium fashion pieces.",
+  alternates: { canonical: "/" },
 };
 
 export default function HomePage() {

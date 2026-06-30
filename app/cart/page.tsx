@@ -228,7 +228,7 @@ export default function CartPage() {
                 </div>
 
                 {/* Payment Methods */}
-                <div className="bg-[var(--brand-blush)]/60 hidden border border-[var(--border)] rounded-2xl p-4">
+                <div className="bg-(--brand-blush)/60 hidden border border-border rounded-2xl p-4">
                   <p className="text-xs font-semibold tracking-widest uppercase text-[var(--brand-muted)] mb-3">
                     Payment Methods
                   </p>

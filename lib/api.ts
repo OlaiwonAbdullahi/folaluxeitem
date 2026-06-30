@@ -34,6 +34,7 @@ export interface ProductColor {
 export interface Product {
   _id: string;
   name: string;
+  slug: string;
   description: string;
   price: number;
   salePrice?: number;
