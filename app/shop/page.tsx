@@ -1,68 +1,74 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState, useMemo } from "react";
-import { products, ProductCategory } from "@/lib/products";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { Product, api } from "@/lib/api";
 import ProductCard from "../_components/ProductCard";
+import ProductCardSkeleton from "../_components/ProductCardSkeleton";
 import Navbar from "../_components/Navbar";
 import Footer from "../_components/Footer";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ShoppingBag01Icon } from "@hugeicons/core-free-icons";
 
-type SortKey = "featured" | "price-asc" | "price-desc" | "a-z";
+type SortKey = "newest" | "price_asc" | "price_desc" | "rating";
 
 function ShopContent() {
   const searchParams = useSearchParams();
-  const categoryParam = searchParams.get("category") as ProductCategory | null;
+  const categoryParam = searchParams.get("category");
   const filterParam = searchParams.get("filter");
 
-  const [activeCategory, setActiveCategory] = useState<"all" | ProductCategory>(
+  const [activeCategory, setActiveCategory] = useState<"all" | string>(
     categoryParam ?? "all",
   );
-  const [sortBy, setSortBy] = useState<SortKey>("featured");
+  const [sortBy, setSortBy] = useState<SortKey>("newest");
 
-  const filtered = useMemo(() => {
-    let result = [...products];
-    if (activeCategory !== "all") {
-      result = result.filter((p) => p.category === activeCategory);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params: any = {
+        sort: sortBy,
+      };
+
+      if (activeCategory !== "all") {
+        params.category = activeCategory;
+      }
+
+      if (filterParam === "new") {
+        params.newArrival = true;
+      } else if (filterParam === "sale") {
+        // Note: API doesn't have a sale filter yet, we can handle locally
+      }
+
+      const response = await api.getProducts(params);
+      setProducts(response.data.products);
+      setTotalCount(response.data.pagination.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load products");
+    } finally {
+      setLoading(false);
     }
-    if (filterParam === "new") {
-      result = result.filter((p) => p.badge === "New In");
-    }
-    if (filterParam === "sale") {
-      result = result.filter((p) => p.originalPrice !== undefined);
-    }
-    switch (sortBy) {
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case "a-z":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "featured":
-      default:
-        result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-    }
-    return result;
   }, [activeCategory, sortBy, filterParam]);
 
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
   const categories: {
-    key: "all" | ProductCategory;
+    key: "all" | string;
     label: string;
-    count: number;
   }[] = [
-    { key: "all", label: "All", count: products.length },
-    {
-      key: "bags",
-      label: "Bags",
-      count: products.filter((p) => p.category === "bags").length,
-    },
-    {
-      key: "clothing",
-      label: "Clothing",
-      count: products.filter((p) => p.category === "clothing").length,
-    },
+    { key: "all", label: "All" },
+    { key: "bags", label: "Bags" },
+    { key: "clothing", label: "Clothing" },
+    { key: "accessories", label: "Accessories" },
   ];
 
   return (
@@ -106,11 +112,6 @@ function ShopContent() {
                   }`}
                 >
                   {cat.label}
-                  <span
-                    className={`ml-1.5 text-xs ${activeCategory === cat.key ? "text-white/70" : "text-[var(--brand-muted)]"}`}
-                  >
-                    ({cat.count})
-                  </span>
                 </button>
               ))}
             </div>
@@ -129,33 +130,52 @@ function ShopContent() {
                 onChange={(e) => setSortBy(e.target.value as SortKey)}
                 className="text-sm border border-border rounded-full md:px-4 md:py-2 px-2 py-1 bg-white text-(--brand-dark) focus:outline-none focus:border-(--brand-rose) cursor-pointer"
               >
-                <option value="featured">Featured</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="a-z">Name: A–Z</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating">Rating</option>
               </select>
             </div>
           </div>
 
+          {error && (
+            <div className="text-center py-12 text-red-500">{error}</div>
+          )}
+
           {/* Results count */}
           <p className="text-sm text-(--brand-muted) mb-6">
-            Showing {filtered.length} {filtered.length === 1 ? "item" : "items"}
+            Showing {products.length} {products.length === 1 ? "item" : "items"}
           </p>
 
           {/* Product Grid */}
-          {filtered.length === 0 ? (
-            <div className="text-center py-24">
-              <p className="font-heading text-2xl text-(--brand-dark) mb-2">
-                Nothing here yet
-              </p>
-              <p className="text-(--brand-muted)">
-                Try a different filter or category.
-              </p>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-24 flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-[var(--brand-blush)] flex items-center justify-center">
+                <HugeiconsIcon
+                  icon={ShoppingBag01Icon}
+                  size={40}
+                  className="text-[var(--brand-rose)]"
+                />
+              </div>
+              <div>
+                <p className="font-heading text-2xl text-(--brand-dark) mb-2">
+                  Nothing here yet
+                </p>
+                <p className="text-(--brand-muted)">
+                  Try a different filter or category.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
           )}

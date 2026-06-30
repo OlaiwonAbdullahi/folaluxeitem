@@ -1,12 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import ProductCard from "./ProductCard";
-import { Product } from "@/lib/products";
+import ProductCardSkeleton from "./ProductCardSkeleton";
+import { Product, api } from "@/lib/api";
 
-type FeaturedProductsProps = {
-  products: Product[];
-};
+export default function FeaturedProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function FeaturedProducts({ products }: FeaturedProductsProps) {
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await api.getFeaturedProducts();
+        setProducts(response.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
     <section className="section-padding py-20 px-6 md:px-0 bg-[var(--brand-blush)]/60 w-full">
       <div className="max-w-7xl mx-auto">
@@ -33,10 +51,28 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </Link>
         </div>
 
+        {error && (
+          <div className="text-center py-12 text-red-500">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))
+          ) : products.length > 0 ? (
+            products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))
+          ) : (
+            !error && (
+              <div className="col-span-4 text-center py-12 text-[var(--brand-muted)]">
+                No featured products found
+              </div>
+            )
+          )}
         </div>
       </div>
     </section>

@@ -14,7 +14,7 @@ export default function Hero() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-black/40 md:bg-gradient-to-r md:from-black/50 md:to-black/10" />
       </div>
 
       {/* Hero Content */}
@@ -30,11 +30,9 @@ export default function Hero() {
               fontWeight: 500,
             }}
           >
-            Style like
+            Bags &amp; clothing,
             <br />
-            <em className="italic" style={{ color: "#f4aac7" }}>
-              you mean it.
-            </em>
+            considered.
           </h1>
           <p className="text-white/75 text-md sm:text-xl leading-relaxed mb-8 max-w-md animate-slide-up-delay-1">
             Premium bags and clothing for women who move with intention. As seen
@@ -44,13 +42,13 @@ export default function Hero() {
             <Link
               href="/shop"
               id="hero-shop-now"
-              className="md:px-8 px-4 md:py-3.5 py-2 text-sm md:text-lg flex items-center bg-[var(--brand-rose)] text-white rounded-full font-medium tracking-wide hover:bg-[#c9617f] transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/20"
+              className="md:px-8 px-5 md:py-3.5 py-2.5 text-sm md:text-base flex items-center bg-[var(--brand-rose)] text-white rounded-lg font-medium tracking-wide hover:bg-[#c9617f] transition-colors duration-200"
             >
               Shop Now
             </Link>
             <Link
               href="/shop?category=bags"
-              className="md:px-8 px-4 md:py-3.5 py-2 text-sm md:text-lg flex items-center bg-white/15 backdrop-blur-sm text-white border border-white/30 rounded-full font-medium hover:bg-white/25 transition-colors"
+              className="md:px-8 px-5 md:py-3.5 py-2.5 text-sm md:text-base flex items-center bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-lg font-medium hover:bg-white/20 transition-colors"
             >
               Explore Bags
             </Link>

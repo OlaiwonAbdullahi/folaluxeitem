@@ -1,5 +1,4 @@
 import type { NavSection } from "./types";
-import { MOCK_ORDERS } from "./types";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
@@ -28,7 +27,6 @@ export const NAV_ITEMS: NavItem[] = [
     id: "orders",
     label: "Orders",
     href: "/admin/orders",
-    badge: MOCK_ORDERS.filter((o) => o.status === "pending" || o.status === "processing").length,
     icon: <HugeiconsIcon icon={ShoppingBag01Icon} size={18} strokeWidth={1.5} />,
   },
   {

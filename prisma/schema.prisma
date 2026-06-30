@@ -1,0 +1,133 @@
+// FolaLuxe data model — MongoDB via Prisma.
+// Mongo uses embedded documents (Prisma composite `type`s) rather than relations
+// for the image/colour/address/line-item sub-objects the UI already expects.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Category {
+  bags
+  clothing
+  accessories
+}
+
+enum OrderStatus {
+  pending
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+type ProductImage {
+  url     String
+  altText String
+  isMain  Boolean @default(false)
+}
+
+type ProductColor {
+  name String
+  hex  String
+}
+
+type CustomerInfo {
+  firstName   String
+  lastName    String
+  email       String
+  phoneNumber String
+}
+
+type ShippingAddress {
+  street     String
+  city       String
+  state      String
+  postalCode String @default("")
+}
+
+type OrderItem {
+  productId     String
+  name          String
+  image         String  @default("")
+  quantity      Int
+  price         Int
+  selectedColor String
+  selectedSize  String
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  email       String   @unique
+  passwordHash String
+  phoneNumber String   @default("")
+  role        Role     @default(user)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  slug          String         @unique
+  description   String
+  price         Int
+  salePrice     Int?
+  category      Category
+  stock         Int            @default(0)
+  images        ProductImage[]
+  colors        ProductColor[]
+  sizes         String[]
+  isFeatured    Boolean        @default(false)
+  isNewArrival  Boolean        @default(false)
+  isBestseller  Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Order {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber      String          @unique
+  customerInfo     CustomerInfo
+  shippingAddress  ShippingAddress
+  items            OrderItem[]
+  totalPrice       Int
+  shippingFee      Int             @default(0)
+  orderStatus      OrderStatus     @default(pending)
+  paymentStatus    PaymentStatus   @default(pending)
+  paymentMethod    String          @default("questpay")
+  paymentReference String?
+  trackingNumber   String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+// Idempotency guard so a Questpay webhook delivered more than once is processed once.
+model ProcessedWebhook {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  reference   String
+  event       String
+  processedAt DateTime @default(now())
+
+  @@unique([reference, event])
+}

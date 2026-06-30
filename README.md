@@ -1,5 +1,61 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+# FolaLuxe — backend, payments & images
+
+The storefront and admin dashboard are powered by a self-contained backend built with **Next.js Route Handlers + Prisma + MongoDB**, with **QuestPay** for checkout and **ImageKit** for product image hosting. There is no separate API server — everything lives under `app/api/**`.
+
+## Setup
+
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment** — copy `.env.example` to `.env.local` and fill it in. `DATABASE_URL` must **also** be present in `.env` (the Prisma CLI reads `.env`). Make sure the Mongo URI includes an explicit database name in the path (e.g. `/folaluxe`).
+
+3. **Create the database schema** (MongoDB uses push, not migrations):
+   ```bash
+   npm run db:generate   # generate the Prisma client
+   npm run db:push       # sync schema to MongoDB
+   ```
+   > Requires a network that can resolve the Atlas SRV record (`mongodb+srv://`). Some restricted networks/DNS resolvers block SRV lookups — run this on a normal connection, or use a non-SRV `mongodb://` URI.
+
+4. **Seed the admin user** (no products are seeded — the catalogue starts empty):
+   ```bash
+   npm run db:seed
+   ```
+   This creates an admin from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. Log in at `/admin/login`, then add products via the dashboard (images upload to ImageKit automatically).
+
+## QuestPay integration
+
+- **Checkout flow:** `/checkout` creates an order (`POST /api/orders`), initializes a hosted checkout (`POST /api/orders/:id/initialize-payment`), and redirects the customer to QuestPay. On return, `/checkout/callback` confirms status.
+- **Webhook (source of truth):** point **QuestPay Settings → Webhook URL** at:
+  ```
+  https://YOUR_DOMAIN/api/webhooks/questpay
+  ```
+  The handler reads the raw body, verifies the `x-questpay-signature` HMAC-SHA256 (timing-safe) against `QUESTPAY_API_KEY`, then marks the order **paid** on `payment.received` (idempotently) or **cancelled** on `checkout.failed`. Duplicate deliveries are safe; stock is decremented exactly once.
+
+### Test the webhook locally
+
+```bash
+# Send a signed payment.received for an existing order id
+ORDER_ID=<a real order _id>
+REF="FL-$ORDER_ID-$(date +%s)"
+BODY=$(printf '{"event":"payment.received","data":{"reference":"%s","status":"success","metadata":{"orderId":"%s"}}}' "$REF" "$ORDER_ID")
+SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$QUESTPAY_API_KEY" | sed 's/^.* //')
+
+curl -i -X POST http://localhost:3000/api/webhooks/questpay \
+  -H "Content-Type: application/json" \
+  -H "x-questpay-event: payment.received" \
+  -H "x-questpay-signature: $SIG" \
+  --data "$BODY"
+# → 200 OK, order flips to paid/processing. A tampered signature → 400.
+```
+
+## ImageKit
+
+Product images are uploaded server-side from the admin product form (the private key never reaches the browser) and served from `ik.imagekit.io` (whitelisted in `next.config.ts`). Set `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, and `IMAGEKIT_URL_ENDPOINT`.
+
 ## Getting Started
 
 First, run the development server:

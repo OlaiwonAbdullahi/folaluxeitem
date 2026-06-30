@@ -17,8 +17,7 @@ import {
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
 
-  const shipping = totalPrice >= 50000 ? 0 : 3500;
-  const finalTotal = totalPrice + shipping;
+  const finalTotal = totalPrice;
 
   return (
     <>
@@ -156,20 +155,9 @@ export default function CartPage() {
                       <span>{formatPrice(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between text-[var(--brand-muted)]">
-                      <span>Shipping</span>
-                      <span>
-                        {shipping === 0 ? (
-                          <span className="text-green-600 font-medium">Free</span>
-                        ) : (
-                          formatPrice(shipping)
-                        )}
-                      </span>
+                      <span>Delivery</span>
+                      <span className="text-green-600 font-medium">Free</span>
                     </div>
-                    {shipping > 0 && (
-                      <p className="text-xs text-[var(--brand-muted)] bg-[var(--brand-blush)] px-3 py-2 rounded-lg">
-                        Spend {formatPrice(50000 - totalPrice)} more for free shipping
-                      </p>
-                    )}
                     <hr className="border-[var(--border)]" />
                     <div className="flex justify-between text-base font-semibold text-[var(--brand-dark)]">
                       <span>Total</span>

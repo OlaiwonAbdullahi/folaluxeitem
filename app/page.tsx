@@ -7,7 +7,6 @@ import FeaturedProducts from "./_components/FeaturedProducts";
 import SocialProof from "./_components/SocialProof";
 import BrandPillars from "./_components/BrandPillars";
 import NewsletterSection from "./_components/NewsletterSection";
-import { getFeaturedProducts } from "@/lib/products";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -17,8 +16,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const featured = getFeaturedProducts();
-
   return (
     <>
       <Navbar />
@@ -26,7 +23,7 @@ export default function HomePage() {
         <Hero />
         <Marquee />
         <CategoryTiles />
-        <FeaturedProducts products={featured.slice(0, 8)} />
+        <FeaturedProducts />
         <SocialProof />
         <BrandPillars />
         <NewsletterSection />

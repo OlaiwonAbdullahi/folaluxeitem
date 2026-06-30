@@ -202,7 +202,7 @@ export default function CartDrawer() {
               </span>
             </div>
             <p className="text-xs text-[var(--brand-muted)]">
-              Shipping calculated at checkout. Payment on delivery available.
+              Free delivery. Secure checkout via QuestPay.
             </p>
             <Link
               href="/checkout"

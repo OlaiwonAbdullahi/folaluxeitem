@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [],
-    // Allow unoptimized local images as fallbacks
+    remotePatterns: [
+      // Product images are uploaded to and served from ImageKit.
+      { protocol: "https", hostname: "ik.imagekit.io", pathname: "/**" },
+    ],
     unoptimized: false,
   },
 };

@@ -209,16 +209,16 @@ export default function AboutPage() {
               </h3>
               <div className="text-sm text-[var(--brand-muted)] space-y-3">
                 <div className="flex items-start gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[var(--brand-rose)] mt-1.5 flex-shrink-0" />
-                  <p>Lagos: ₦3,500 flat fee · 1–3 business days</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[var(--brand-rose)] mt-1.5 flex-shrink-0" />
-                  <p>Other states: ₦3,500 · 3–7 business days</p>
-                </div>
-                <div className="flex items-start gap-3">
                   <span className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
-                  <p>Free shipping on orders above ₦50,000</p>
+                  <p>Free delivery on every order</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-2 h-2 rounded-full bg-[var(--brand-rose)] mt-1.5 flex-shrink-0" />
+                  <p>Lagos: 1–3 business days</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-2 h-2 rounded-full bg-[var(--brand-rose)] mt-1.5 flex-shrink-0" />
+                  <p>Other states: 3–7 business days</p>
                 </div>
               </div>
             </div>

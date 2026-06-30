@@ -1,52 +1,109 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   MinusSignIcon,
   PlusSignIcon,
-  WhatsappIcon,
   DeliveryTruck01Icon,
-  CreditCardIcon,
+  ShieldKeyIcon,
   ReloadIcon,
   Tick01Icon,
   ShoppingBag01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import ProductCard from "@/app/_components/ProductCard";
+import ProductCardSkeleton from "@/app/_components/ProductCardSkeleton";
 import Footer from "@/app/_components/Footer";
-import {
-  formatPrice,
-  getProductBySlug,
-  getRelatedProducts,
-} from "@/lib/products";
+import ProductDetailSkeleton from "./ProductDetailSkeleton";
+import { Product, api } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
 import { useCart } from "@/app/_components/CartContext";
 import Navbar from "@/app/_components/Navbar";
 
-export default function ProductDetailClient({ slug }: { slug: string }) {
-  const product = getProductBySlug(slug)!;
+// Adapter for cart
+function adaptProductForCart(product: Product) {
+  return {
+    id: product._id,
+    slug: product._id,
+    name: product.name,
+    price: product.salePrice || product.price,
+    originalPrice: product.salePrice ? product.price : undefined,
+    category: product.category,
+    images: product.images.map((img) => img.url),
+    sizes: product.sizes,
+    colors: product.colors.map((c) => c.name),
+    description: product.description,
+    featured: product.isFeatured,
+    inStock: product.stock > 0,
+    badge: product.isBestseller
+      ? "Bestseller"
+      : product.isNewArrival
+        ? "New In"
+        : undefined,
+  };
+}
 
-  const related = getRelatedProducts(product, 4);
+export default function ProductDetailClient({ id }: { id: string }) {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { addItem } = useCart();
 
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const productRes = await api.getProduct(id);
+        setProduct(productRes.data);
+
+        const productsRes = await api.getProducts({
+          category: productRes.data.category,
+          limit: 8,
+        });
+        setRelatedProducts(
+          productsRes.data.products.filter((p) => p._id !== id).slice(0, 4),
+        );
+
+        setSelectedSize(productRes.data.sizes[0]);
+        setSelectedColor(productRes.data.colors[0]?.name || "");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
   function handleAddToCart() {
-    addItem(product, quantity, selectedSize, selectedColor);
+    if (!product) return;
+    const adapted = adaptProductForCart(product);
+    addItem(adapted, quantity, selectedSize, selectedColor);
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   }
 
-  // Gradient bg per category
-  const heroBg =
-    product.category === "bags"
-      ? "linear-gradient(135deg, #fce8ef 0%, #fadde5 60%, #f0d0da 100%)"
-      : "linear-gradient(135deg, #f5eaf0 0%, #f9dde8 60%, #eecfdf 100%)";
+  if (loading) {
+    return <ProductDetailSkeleton />;
+  }
+
+  if (error || !product) {
+    notFound();
+  }
+
+  const adaptedProduct = adaptProductForCart(product);
+  const mainImage =
+    product.images.find((img) => img.isMain) || product.images[0];
 
   return (
     <>
@@ -89,38 +146,31 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         <section className="section-padding max-w-7xl mx-auto w-full pb-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             {/* Image Panel */}
-            <div
-              className="relative aspect-3/4 rounded-3xl overflow-hidden"
-              style={{ background: heroBg }}
-            >
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                priority
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-              {product.badge && (
+            <div className="relative aspect-3/4 rounded-2xl overflow-hidden bg-[var(--brand-blush)]">
+              {mainImage && (
+                <img
+                  src={mainImage.url}
+                  alt={mainImage.altText || product.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              {adaptedProduct.badge && (
                 <span className="absolute top-5 left-5 px-4 py-1.5 rounded-full text-[10px] tracking-widest uppercase font-semibold bg-white text-[var(--brand-rose)] shadow-sm">
-                  {product.badge}
+                  {adaptedProduct.badge}
                 </span>
               )}
-              {/* Decorative corner arc */}
-              <div
-                className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full border-2 opacity-20"
-                style={{ borderColor: "var(--brand-pink)" }}
-              />
             </div>
 
             {/* Info Panel */}
             <div className="flex flex-col gap-6 lg:sticky lg:top-28">
               <div>
                 <p className="text-[10px] tracking-[0.35em] uppercase text-(--brand-muted) mb-2 font-medium">
-                  FolaLuxe · {product.category === "bags" ? "Bags" : "Clothing"}
+                  FolaLuxe ·{" "}
+                  {product.category.charAt(0).toUpperCase() +
+                    product.category.slice(1)}
                 </p>
                 <h1
                   className="text-4xl sm:text-5xl text-(--brand-dark) leading-[1.1]"
@@ -133,16 +183,19 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 </h1>
                 <div className="flex items-center gap-3 mt-4">
                   <span className="text-3xl font-semibold text-(--brand-rose)">
-                    {formatPrice(product.price)}
+                    {formatPrice(adaptedProduct.price)}
                   </span>
-                  {product.originalPrice && (
+                  {adaptedProduct.originalPrice && (
                     <span className="text-sm text-(--brand-muted) line-through">
-                      {formatPrice(product.originalPrice)}
+                      {formatPrice(adaptedProduct.originalPrice)}
                     </span>
                   )}
-                  {product.originalPrice && (
+                  {adaptedProduct.originalPrice && (
                     <span className="px-2.5 py-1 bg-[var(--brand-blush)] text-[var(--brand-rose)] text-[10px] tracking-widest uppercase rounded-full font-bold">
-                      Save {formatPrice(product.originalPrice - product.price)}
+                      Save{" "}
+                      {formatPrice(
+                        adaptedProduct.originalPrice - adaptedProduct.price,
+                      )}
                     </span>
                   )}
                 </div>
@@ -166,17 +219,17 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <div className="flex flex-wrap gap-2">
                   {product.colors.map((color) => (
                     <button
-                      key={color}
-                      id={`color-${color.toLowerCase().replace(/\s+/g, "-")}`}
-                      onClick={() => setSelectedColor(color)}
-                      aria-label={`Select colour ${color}`}
+                      key={color.name}
+                      id={`color-${color.name.toLowerCase().replace(/\s+/g, "-")}`}
+                      onClick={() => setSelectedColor(color.name)}
+                      aria-label={`Select colour ${color.name}`}
                       className={`px-4 py-2 rounded-full text-xs border transition-all duration-150 ${
-                        selectedColor === color
+                        selectedColor === color.name
                           ? "bg-[var(--brand-rose)] text-white border-[var(--brand-rose)] shadow"
                           : "border-[var(--border)] text-[var(--brand-text)] hover:border-[var(--brand-rose)]"
                       }`}
                     >
-                      {color}
+                      {color.name}
                     </button>
                   ))}
                 </div>
@@ -251,11 +304,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <button
                   id="add-to-cart"
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  disabled={!adaptedProduct.inStock}
                   className={`flex-1 min-w-[180px] py-3.5 px-6 rounded-full font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                     added
                       ? "bg-green-500 text-white"
-                      : product.inStock
+                      : adaptedProduct.inStock
                         ? "bg-[var(--brand-rose)] text-white hover:bg-[var(--brand-pink)] hover:shadow-lg hover:shadow-pink-200"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
@@ -265,7 +318,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       <HugeiconsIcon icon={Tick01Icon} size={18} />
                       Added to Bag!
                     </>
-                  ) : product.inStock ? (
+                  ) : adaptedProduct.inStock ? (
                     <>
                       <HugeiconsIcon icon={ShoppingBag01Icon} size={18} />
                       Add to Bag
@@ -276,23 +329,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 </button>
               </div>
 
-              {/* Order via WhatsApp */}
-              <a
-                href={`https://wa.me/2348000000000?text=Hi%2C%20I'd%20like%20to%20order%20${encodeURIComponent(product.name)}%20in%20${encodeURIComponent(selectedColor)}${selectedSize !== "One Size" ? `%20(Size%20${encodeURIComponent(selectedSize)})` : ""}%20x${quantity}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                id="order-whatsapp"
-                className="flex items-center justify-center gap-2.5 py-3.5 rounded-full border border-green-500 text-green-600 text-sm font-medium hover:bg-green-50 transition-colors"
-              >
-                <HugeiconsIcon icon={WhatsappIcon} size={20} />
-                Order via WhatsApp
-              </a>
-
               {/* Trust badges */}
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { icon: DeliveryTruck01Icon, text: "Nationwide delivery" },
-                  { icon: CreditCardIcon, text: "Pay on delivery" },
+                  { icon: ShieldKeyIcon, text: "Secure checkout" },
                   { icon: ReloadIcon, text: "Easy returns" },
                   { icon: Tick01Icon, text: "Authentic product" },
                 ].map((badge) => (
@@ -314,7 +355,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           </div>
         </section>
       </main>
-      {related.length > 0 && (
+      {relatedProducts.length > 0 && (
         <section className="section-padding py-20 bg-(--brand-blush)/40 w-full px-6 md:px-0">
           <div className="max-w-7xl mx-auto">
             <h2
@@ -327,8 +368,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               You might also love
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 sm:gap-5">
-              {related.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {relatedProducts.map((p) => (
+                <ProductCard key={p._id} product={p} />
               ))}
             </div>
           </div>

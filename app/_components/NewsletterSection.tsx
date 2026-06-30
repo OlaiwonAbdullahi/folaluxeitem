@@ -3,10 +3,7 @@ import NewsletterForm from "./NewsletterForm";
 export default function NewsletterSection() {
   return (
     <section className="section-padding py-20 max-w-7xl mx-auto w-full">
-      <div
-        className="rounded-3xl px-8 py-14 sm:px-14 text-center"
-        style={{ background: "linear-gradient(135deg, #fce8ef 0%, #f9d8e6 50%, #f4c4d8 100%)" }}
-      >
+      <div className="rounded-2xl px-8 py-14 sm:px-14 text-center bg-[var(--brand-blush)] border border-[var(--brand-rose)]/15">
         <p className="text-[10px] tracking-[0.35em] uppercase text-[var(--brand-rose)] mb-3 font-semibold">Stay ahead</p>
         <h2
           className="text-4xl sm:text-5xl text-[var(--brand-dark)] mb-4"
