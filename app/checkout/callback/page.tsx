@@ -32,8 +32,10 @@ function CallbackInner() {
   const [orderNumber, setOrderNumber] = useState<string>("");
   const ran = useRef(false);
 
-  const ref = params.get("ref");
-  const checkoutStatus = params.get("checkout_status");
+  // QuestPay's redirect param names aren't guaranteed — accept the common
+  // variants so a confirmed payment isn't dropped just because the key differs.
+  const ref = params.get("ref") || params.get("reference");
+  const checkoutStatus = params.get("checkout_status") || params.get("status");
 
   useEffect(() => {
     if (ran.current) return;
