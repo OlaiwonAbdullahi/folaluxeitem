@@ -85,107 +85,132 @@ function CallbackInner() {
     confirm();
   }, [ref, checkoutStatus, clearCart]);
 
-  // Build a self-contained HTML receipt and download it. No dependencies — the
-  // file opens in any browser and can be printed to PDF.
-  function downloadReceipt() {
+  // Build a real PDF receipt and download it. jsPDF is imported on demand so it
+  // stays out of the initial page bundle.
+  async function downloadReceipt() {
     if (!order) return;
-    const esc = (s: unknown) =>
-      String(s ?? "").replace(
-        /[&<>"]/g,
-        (c) =>
-          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] || c,
-      );
-    const subtotal = order.items.reduce(
-      (sum, i) => sum + i.price * i.quantity,
-      0,
-    );
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+    // jsPDF's built-in fonts have no ₦ glyph, so format money as "NGN 1,234".
+    const money = (n: number) =>
+      `NGN ${new Intl.NumberFormat("en-NG", { minimumFractionDigits: 0 }).format(n)}`;
+
+    const left = 18;
+    const right = 192; // page width 210 - 18 margin
+    const colQty = 132;
+    const colPrice = 162;
+    let y = 22;
+
+    // Header
+    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(190, 18, 60);
+    doc.text("FolaLuxe", left, y);
+    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(107, 114, 128);
+    doc.text("Payment Receipt", left, y + 6);
+    doc.setFont("helvetica", "bold").setTextColor(5, 150, 105);
+    doc.text("PAID", left, y + 12);
+
     const date = new Date(order.createdAt).toLocaleString("en-NG", {
       dateStyle: "medium",
       timeStyle: "short",
     });
-    const rows = order.items
-      .map((i) => {
-        const variant = [i.selectedColor, i.selectedSize]
-          .filter(Boolean)
-          .join(" · ");
-        return `<tr>
-          <td>${esc(i.name)}${variant ? `<div class="variant">${esc(variant)}</div>` : ""}</td>
-          <td class="num">${i.quantity}</td>
-          <td class="num">${esc(formatPrice(i.price))}</td>
-          <td class="num">${esc(formatPrice(i.price * i.quantity))}</td>
-        </tr>`;
-      })
-      .join("");
+    doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(31, 41, 55);
+    doc.text(`Order #${order.orderNumber}`, right, y, { align: "right" });
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(107, 114, 128);
+    doc.text(date, right, y + 5, { align: "right" });
+    if (order.paymentReference) {
+      doc.text(`Ref: ${order.paymentReference}`, right, y + 10, { align: "right" });
+    }
+
+    y += 22;
+    doc.setDrawColor(225, 226, 230).setLineWidth(0.4).line(left, y, right, y);
+    y += 9;
+
+    // Billed to / Ship to
     const c = order.customerInfo;
     const a = order.shippingAddress;
-    const html = `<!doctype html><html><head><meta charset="utf-8">
-<title>FolaLuxe Receipt ${esc(order.orderNumber)}</title>
-<style>
-  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1f2937;max-width:720px;margin:40px auto;padding:0 24px}
-  h1{font-size:24px;margin:0}
-  .brand{color:#be123c;font-weight:700;letter-spacing:.5px}
-  .muted{color:#6b7280;font-size:13px}
-  .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #f1f1f3;padding-bottom:16px;margin-bottom:24px}
-  .grid{display:flex;gap:40px;margin-bottom:24px;font-size:13px}
-  .grid h3{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#9ca3af;margin:0 0 6px}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th{text-align:left;border-bottom:1px solid #e5e7eb;padding:8px 0;font-size:11px;text-transform:uppercase;color:#9ca3af;letter-spacing:.5px}
-  td{padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top}
-  .num{text-align:right;white-space:nowrap}
-  .variant{color:#9ca3af;font-size:12px;margin-top:2px}
-  .totals{margin-top:16px;margin-left:auto;width:240px;font-size:14px}
-  .totals div{display:flex;justify-content:space-between;padding:4px 0}
-  .totals .grand{border-top:2px solid #f1f1f3;margin-top:6px;padding-top:10px;font-weight:700;font-size:16px}
-  .paid{display:inline-block;background:#ecfdf5;color:#059669;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;margin-top:8px}
-  footer{margin-top:40px;text-align:center;color:#9ca3af;font-size:12px}
-</style></head><body>
-  <div class="head">
-    <div>
-      <h1 class="brand">FolaLuxe</h1>
-      <div class="muted">Payment Receipt</div>
-      <div class="paid">PAID</div>
-    </div>
-    <div class="muted" style="text-align:right">
-      <div><strong>Order #${esc(order.orderNumber)}</strong></div>
-      <div>${esc(date)}</div>
-      ${order.paymentReference ? `<div>Ref: ${esc(order.paymentReference)}</div>` : ""}
-    </div>
-  </div>
-  <div class="grid">
-    <div>
-      <h3>Billed to</h3>
-      <div>${esc(c.firstName)} ${esc(c.lastName)}</div>
-      <div>${esc(c.email)}</div>
-      <div>${esc(c.phoneNumber)}</div>
-    </div>
-    <div>
-      <h3>Ship to</h3>
-      <div>${esc(a.street)}</div>
-      <div>${esc(a.city)}${a.state ? `, ${esc(a.state)}` : ""}</div>
-      ${a.postalCode ? `<div>${esc(a.postalCode)}</div>` : ""}
-    </div>
-  </div>
-  <table>
-    <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div class="totals">
-    <div><span>Subtotal</span><span>${esc(formatPrice(subtotal))}</span></div>
-    ${typeof order.shippingFee === "number" ? `<div><span>Shipping</span><span>${esc(formatPrice(order.shippingFee))}</span></div>` : ""}
-    <div class="grand"><span>Total</span><span>${esc(formatPrice(order.totalPrice))}</span></div>
-  </div>
-  <footer>Thank you for shopping with FolaLuxe — questions? Reply to your order confirmation email.</footer>
-</body></html>`;
+    const colHead = (label: string, x: number) => {
+      doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(156, 163, 175);
+      doc.text(label.toUpperCase(), x, y);
+    };
+    colHead("Billed to", left);
+    colHead("Ship to", 110);
+    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(31, 41, 55);
+    const billed = [`${c.firstName} ${c.lastName}`, c.email, c.phoneNumber];
+    const shipped = [
+      a.street,
+      [a.city, a.state].filter(Boolean).join(", "),
+      a.postalCode,
+    ].filter(Boolean);
+    billed.forEach((line, i) => doc.text(String(line), left, y + 6 + i * 5));
+    shipped.forEach((line, i) => doc.text(String(line), 110, y + 6 + i * 5));
+    y += 6 + Math.max(billed.length, shipped.length) * 5 + 8;
 
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `FolaLuxe-Receipt-${order.orderNumber}.html`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    // Items table header
+    doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(156, 163, 175);
+    doc.text("ITEM", left, y);
+    doc.text("QTY", colQty, y, { align: "right" });
+    doc.text("PRICE", colPrice, y, { align: "right" });
+    doc.text("AMOUNT", right, y, { align: "right" });
+    y += 3;
+    doc.setDrawColor(229, 231, 235).line(left, y, right, y);
+    y += 6;
+
+    // Items
+    doc.setTextColor(31, 41, 55);
+    for (const item of order.items) {
+      if (y > 265) {
+        doc.addPage();
+        y = 22;
+      }
+      const variant = [item.selectedColor, item.selectedSize]
+        .filter(Boolean)
+        .join(" · ");
+      doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(31, 41, 55);
+      const nameLines = doc.splitTextToSize(item.name, colQty - left - 6);
+      doc.text(nameLines, left, y);
+      doc.text(String(item.quantity), colQty, y, { align: "right" });
+      doc.text(money(item.price), colPrice, y, { align: "right" });
+      doc.text(money(item.price * item.quantity), right, y, { align: "right" });
+      let rowH = nameLines.length * 4.5;
+      if (variant) {
+        doc.setFontSize(8).setTextColor(156, 163, 175);
+        doc.text(variant, left, y + rowH);
+        rowH += 4;
+      }
+      y += rowH + 4;
+      doc.setDrawColor(243, 244, 246).line(left, y - 2, right, y - 2);
+    }
+
+    // Totals
+    const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    y += 4;
+    const totalRow = (label: string, value: string, bold = false) => {
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.setFontSize(bold ? 12 : 10);
+      doc.setTextColor(bold ? 31 : 107, bold ? 41 : 114, bold ? 55 : 128);
+      doc.text(label, colPrice, y, { align: "right" });
+      doc.text(value, right, y, { align: "right" });
+      y += bold ? 8 : 6;
+    };
+    totalRow("Subtotal", money(subtotal));
+    if (typeof order.shippingFee === "number") {
+      totalRow("Shipping", money(order.shippingFee));
+    }
+    doc.setDrawColor(225, 226, 230).line(colPrice - 30, y - 2, right, y - 2);
+    y += 2;
+    totalRow("Total", money(order.totalPrice), true);
+
+    // Footer
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(156, 163, 175);
+    doc.text(
+      "Thank you for shopping with FolaLuxe.",
+      105,
+      288,
+      { align: "center" },
+    );
+
+    doc.save(`FolaLuxe-Receipt-${order.orderNumber}.pdf`);
   }
 
   return (
