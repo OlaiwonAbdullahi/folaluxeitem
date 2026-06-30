@@ -77,6 +77,18 @@ export interface ShippingAddress {
 
 export interface OrderItem {
   productId: string;
+  name: string;
+  image: string;
+  price: number;
+  quantity: number;
+  selectedColor: string;
+  selectedSize: string;
+}
+
+// What the client submits when creating an order. The server enriches each
+// item with the product snapshot (name, image, price) before storing it.
+export interface CreateOrderItem {
+  productId: string;
   quantity: number;
   selectedColor: string;
   selectedSize: string;
@@ -240,7 +252,7 @@ class ApiClient {
   async createOrder(orderData: {
     customerInfo: CustomerInfo;
     shippingAddress: ShippingAddress;
-    items: OrderItem[];
+    items: CreateOrderItem[];
     paymentMethod: string;
     notes?: string;
   }) {

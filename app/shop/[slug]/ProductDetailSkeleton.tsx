@@ -81,7 +81,7 @@ export default function ProductDetailSkeleton() {
         </section>
       </main>
 
-      <section className="section-padding py-20 bg-(--brand-blush)/40 w-full px-6 md:px-0">
+      <section className="section-padding py-20 bg-(--brand-blush)/40 w-full">
         <div className="max-w-7xl mx-auto">
           <Skeleton className="h-10 w-64 mb-10" />
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 sm:gap-5">

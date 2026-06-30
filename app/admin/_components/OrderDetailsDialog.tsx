@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ function Field({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400">
         {label}
       </p>
-      <p className="text-sm text-zinc-800 mt-0.5 break-words">{value || "—"}</p>
+      <p className="text-sm text-zinc-800 mt-0.5 wrap-break-word">{value || "—"}</p>
     </div>
   );
 }
@@ -122,36 +123,51 @@ export default function OrderDetailsDialog({
             <h3 className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">
               Items ({order.items.reduce((s, i) => s + i.quantity, 0)})
             </h3>
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-zinc-50/80 text-[10px] uppercase tracking-widest font-semibold text-zinc-400">
-                    <th className="text-left px-3 py-2">Product</th>
-                    <th className="text-left px-3 py-2">Color</th>
-                    <th className="text-left px-3 py-2">Size</th>
-                    <th className="text-right px-3 py-2">Qty</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-50">
-                  {order.items.map((item, i) => (
-                    <tr key={`${item.productId}-${i}`}>
-                      <td className="px-3 py-2 font-mono text-[11px] text-zinc-500">
-                        {item.productId}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-700">
-                        {item.selectedColor || "—"}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-700">
-                        {item.selectedSize || "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right text-zinc-700">
-                        {item.quantity}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ul className="divide-y divide-zinc-50 rounded-lg border border-zinc-100">
+              {order.items.map((item, i) => (
+                <li
+                  key={`${item.productId}-${i}`}
+                  className="flex gap-3 p-3"
+                >
+                  <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] text-zinc-400">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-zinc-800">
+                      {item.name || "Unnamed product"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {[item.selectedColor, item.selectedSize]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[10px] text-zinc-400">
+                      {item.productId}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-medium text-zinc-800">
+                      {formatPrice(item.price)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      × {item.quantity}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
 
           {/* Payment */}

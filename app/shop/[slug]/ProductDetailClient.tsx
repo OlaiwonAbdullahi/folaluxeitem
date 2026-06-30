@@ -356,7 +356,7 @@ export default function ProductDetailClient({ id }: { id: string }) {
         </section>
       </main>
       {relatedProducts.length > 0 && (
-        <section className="section-padding py-20 bg-(--brand-blush)/40 w-full px-6 md:px-0">
+        <section className="section-padding py-20 bg-(--brand-blush)/40 w-full">
           <div className="max-w-7xl mx-auto">
             <h2
               className="text-3xl sm:text-4xl text-(--brand-dark) mb-10"

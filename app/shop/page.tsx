@@ -76,7 +76,7 @@ function ShopContent() {
       <Navbar />
       <main className="flex flex-col flex-1 min-h-screen">
         {/* Page Header */}
-        <div className="pt-28 pb-12 px-6 md:px-0 section-padding bg-[var(--brand-blush)]/50 text-center">
+        <div className="pt-28 pb-12 section-padding bg-[var(--brand-blush)]/50 text-center">
           <p className="text-[10px] tracking-[0.35em] uppercase text-[var(--brand-muted)] mb-3">
             Browse
           </p>
@@ -95,7 +95,7 @@ function ShopContent() {
           </p>
         </div>
 
-        <div className="section-padding max-w-7xl mx-auto w-full py-10 px-6 md:px-0">
+        <div className="section-padding max-w-7xl mx-auto w-full py-10">
           {/* Filters Row */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             {/* Category Pills */}
