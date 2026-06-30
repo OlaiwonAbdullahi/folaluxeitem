@@ -182,6 +182,12 @@ export default function OrdersSection() {
       <OrderDetailsDialog
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+        onUpdated={(updated) => {
+          setOrders((prev) =>
+            prev.map((o) => (o._id === updated._id ? updated : o)),
+          );
+          setSelectedOrder(updated);
+        }}
       />
     </div>
   );

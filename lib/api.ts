@@ -102,9 +102,11 @@ export interface Order {
   shippingAddress: ShippingAddress;
   items: OrderItem[];
   totalPrice: number;
+  shippingFee?: number;
   orderStatus: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
-  paymentMethod: "paystack" | "cash";
+  paymentMethod: "paystack" | "cash" | "questpay";
+  paymentReference?: string;
   createdAt: string;
   updatedAt: string;
 }

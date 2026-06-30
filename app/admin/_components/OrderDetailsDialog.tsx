@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
-import { type Order } from "@/lib/api";
+import { api, type Order } from "@/lib/api";
 import { STATUS_CONFIG, type OrderStatus } from "./types";
 
 const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
@@ -49,13 +51,47 @@ function Field({ label, value }: { label: string; value: string }) {
 interface OrderDetailsDialogProps {
   order: Order | null;
   onClose: () => void;
+  // Called with the updated order after a successful status change so the
+  // parent list (and this dialog) can reflect the new status.
+  onUpdated?: (order: Order) => void;
 }
 
 export default function OrderDetailsDialog({
   order,
   onClose,
+  onUpdated,
 }: OrderDetailsDialogProps) {
+  const [status, setStatus] = useState<OrderStatus>("pending");
+  const [saving, setSaving] = useState(false);
+
+  // Sync the local selection whenever a different order is opened.
+  useEffect(() => {
+    if (order) setStatus(order.orderStatus as OrderStatus);
+  }, [order]);
+
   if (!order) return null;
+
+  const currentOrder = order;
+
+  async function handleSaveStatus() {
+    if (status === currentOrder.orderStatus) return;
+    setSaving(true);
+    try {
+      const res = await api.adminUpdateOrderStatus(currentOrder._id, {
+        orderStatus: status,
+      });
+      toast.success(`Order marked as ${STATUS_CONFIG[status].label}`);
+      onUpdated?.(res.data);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update order status",
+      );
+      // Revert the selector to the order's actual status on failure.
+      setStatus(currentOrder.orderStatus as OrderStatus);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const cfg = STATUS_CONFIG[order.orderStatus as OrderStatus];
   const pay = PAYMENT_BADGE[order.paymentStatus] ?? PAYMENT_BADGE.pending;
@@ -203,14 +239,45 @@ export default function OrderDetailsDialog({
           </section>
         </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="rounded-xl"
-          >
-            Close
-          </Button>
+        <DialogFooter className="sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="order-status-select"
+              className="text-xs font-medium text-zinc-500"
+            >
+              Status
+            </label>
+            <select
+              id="order-status-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OrderStatus)}
+              disabled={saving}
+              className="px-3 py-2 rounded-lg border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-300 disabled:opacity-50"
+            >
+              {(Object.keys(STATUS_CONFIG) as OrderStatus[]).map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_CONFIG[s].label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="rounded-xl"
+              disabled={saving}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={handleSaveStatus}
+              disabled={saving || status === order.orderStatus}
+              className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+            >
+              {saving ? "Saving…" : "Save status"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
