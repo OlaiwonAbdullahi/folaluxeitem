@@ -126,12 +126,10 @@ function CallbackInner() {
       doc.addImage(logo, "PNG", left, y - 11, logoW, logoH);
       brandX = left + logoW + 4;
     }
-    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(190, 18, 60);
-    doc.text("FolaLuxe", brandX, y);
     doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(107, 114, 128);
-    doc.text("Payment Receipt", brandX, y + 6);
+    doc.text("Payment Receipt", brandX, y - 2);
     doc.setFont("helvetica", "bold").setTextColor(5, 150, 105);
-    doc.text("PAID", brandX, y + 12);
+    doc.text("PAID", brandX, y + 4);
 
     const date = new Date(order.createdAt).toLocaleString("en-NG", {
       dateStyle: "medium",
