@@ -19,8 +19,11 @@ type Status = "verifying" | "success" | "failed";
 function orderIdFromRef(ref: string | null): string | null {
   if (!ref) return null;
   const parts = ref.split("-");
-  return parts.length >= 3 ? parts[1] : null;
+  // QuestPay uppercases the reference; the Mongo order id is lowercase hex.
+  return parts.length >= 3 ? parts[1].toLowerCase() : null;
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function CallbackInner() {
   const params = useSearchParams();
@@ -46,24 +49,32 @@ function CallbackInner() {
         setStatus("failed");
         return;
       }
-      try {
-        const res = await api.verifyPayment(orderId, ref);
-        setOrderNumber(res.data.orderNumber);
-        if (res.data.paymentStatus === "paid") {
-          clearCart();
-          setStatus("success");
-        } else {
-          // Payment may still be confirming via webhook — treat as success UX
-          // when QuestPay redirected with success, else show pending/failed.
-          if (checkoutStatus === "success") {
+
+      // The webhook is the source of truth but may land a moment after the
+      // shopper is redirected back. Poll verify a few times so a slightly
+      // delayed webhook still resolves to a confirmed state.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          const res = await api.verifyPayment(orderId, ref);
+          setOrderNumber(res.data.orderNumber);
+          if (res.data.paymentStatus === "paid") {
             clearCart();
             setStatus("success");
-          } else {
-            setStatus("failed");
+            return;
           }
+        } catch {
+          // Transient (e.g. webhook not processed yet) — retry below.
         }
-      } catch {
-        setStatus(checkoutStatus === "success" ? "success" : "failed");
+        if (attempt < 4) await sleep(2000);
+      }
+
+      // Not confirmed after retries. Trust QuestPay's success redirect for UX;
+      // the webhook will still settle the order server-side if it arrives late.
+      if (checkoutStatus === "success") {
+        clearCart();
+        setStatus("success");
+      } else {
+        setStatus("failed");
       }
     }
     confirm();

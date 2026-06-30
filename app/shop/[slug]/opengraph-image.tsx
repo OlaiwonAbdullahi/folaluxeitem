@@ -1,7 +1,17 @@
 import { ImageResponse } from "next/og";
 import { getProduct } from "@/lib/products-data";
-import { formatPrice } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
+
+// The default next/og font has no ₦ glyph (renders as tofu), so format with the
+// "NGN" currency code here instead of the symbol used elsewhere on the site.
+function formatOgPrice(amount: number): string {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    currencyDisplay: "code",
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
 
 export const alt = "FolaLuxe product";
 export const size = { width: 1200, height: 630 };
@@ -146,7 +156,7 @@ export default async function Image({ params }: Props) {
             }}
           >
             <span style={{ fontSize: 52, fontWeight: 700, color: ROSE }}>
-              {formatPrice(price)}
+              {formatOgPrice(price)}
             </span>
             {product.salePrice && (
               <span
@@ -156,7 +166,7 @@ export default async function Image({ params }: Props) {
                   textDecoration: "line-through",
                 }}
               >
-                {formatPrice(product.price)}
+                {formatOgPrice(product.price)}
               </span>
             )}
           </div>

@@ -27,7 +27,13 @@ export async function POST(
     // Bind verification to THIS order's reference. We never verify against a
     // client-supplied reference that differs from the one we issued, otherwise
     // a caller could confirm this order using a stranger's successful payment.
-    if (reference && order.paymentReference && reference !== order.paymentReference) {
+    // Compare case-insensitively: QuestPay normalizes references to uppercase,
+    // while the one we stored at initialize is the lowercase Mongo id form.
+    if (
+      reference &&
+      order.paymentReference &&
+      String(reference).toLowerCase() !== order.paymentReference.toLowerCase()
+    ) {
       return fail(400, "Reference does not match this order");
     }
     const ref = order.paymentReference || reference;

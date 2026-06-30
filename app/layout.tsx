@@ -35,12 +35,23 @@ export const metadata: Metadata = {
     url: siteConfig.url,
     locale: "en_NG",
     type: "website",
+    // Default share image for pages without their own (home, about, shop list).
+    // Product pages override this via their colocated opengraph-image route.
+    images: [
+      {
+        url: "/ogimage.png",
+        width: 1348,
+        height: 650,
+        alt: siteConfig.ogImageAlt,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
     site: siteConfig.twitter,
+    images: ["/ogimage.png"],
   },
   robots: {
     index: true,
