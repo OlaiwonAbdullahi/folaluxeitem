@@ -1,4 +1,4 @@
-import { verifyWebhookSignature } from "@/lib/questpay";
+import { verifyWebhookSignature, extractGrossAmount } from "@/lib/questpay";
 import { markOrderPaid, markOrderFailed } from "@/lib/payment";
 
 export const runtime = "nodejs";
@@ -53,7 +53,12 @@ export async function POST(request: Request) {
         console.warn("[questpay] could not resolve order id", { reference });
         return new Response("OK (no order)", { status: 200 });
       }
-      await markOrderPaid(orderId, reference, eventName);
+      await markOrderPaid(
+        orderId,
+        reference,
+        eventName,
+        extractGrossAmount(data),
+      );
     } else if (eventName === "checkout.failed") {
       const orderId = resolveOrderId(data);
       if (orderId) await markOrderFailed(orderId, reference);

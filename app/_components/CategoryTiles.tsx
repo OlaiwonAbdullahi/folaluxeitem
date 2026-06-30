@@ -51,8 +51,12 @@ export default function CategoryTiles() {
               Bags
             </h3>
             <span className="inline-flex items-center gap-2 text-sm text-white/80 group-hover:text-white transition-colors">
-              From {formatPrice(18000)}
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={2} />
+              From {formatPrice(5000)}
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={16}
+                strokeWidth={2}
+              />
             </span>
           </div>
         </Link>
@@ -85,8 +89,12 @@ export default function CategoryTiles() {
               Clothing
             </h3>
             <span className="inline-flex items-center gap-2 text-sm text-white/80 group-hover:text-white transition-colors">
-              From {formatPrice(19000)}
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={2} />
+              From {formatPrice(10000)}
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={16}
+                strokeWidth={2}
+              />
             </span>
           </div>
         </Link>
@@ -94,4 +102,3 @@ export default function CategoryTiles() {
     </section>
   );
 }
-

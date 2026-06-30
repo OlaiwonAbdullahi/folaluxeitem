@@ -9,7 +9,6 @@ import CartDrawer from "./CartDrawer";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ShoppingBag01Icon,
-  Menu01Icon,
   Cancel01Icon,
   Menu11Icon,
 } from "@hugeicons/core-free-icons";

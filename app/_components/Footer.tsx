@@ -7,6 +7,7 @@ import {
   Mail01Icon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -21,16 +22,12 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="block mb-4">
-              <span
-                className="text-3xl tracking-widest uppercase text-white"
-                style={{
-                  fontFamily: "var(--font-heading), Georgia, serif",
-                  fontWeight: 600,
-                }}
-              >
-                Fola<span style={{ color: "var(--brand-pink)" }}>Luxe</span>
-              </span>
+            <Link
+              href="/"
+              className="flex flex-col leading-none group"
+              aria-label="FolaLuxe Home"
+            >
+              <Image src="/logo.png" alt="Logo" width={100} height={100} />
             </Link>
             <p className="text-sm text-white/55 leading-relaxed max-w-xs">
               Curated luxury fashion — clothing and bags for women who know what
@@ -149,15 +146,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/35">
         <p>© {year} FolaLuxe. All rights reserved.</p>
-        <div className="flex items-center gap-2">
-          <span>Payments:</span>
-          <span className="px-2 py-1 rounded bg-white/10 text-white/60 font-medium">
-            Bank Transfer
-          </span>
-          <span className="px-2 py-1 rounded bg-white/10 text-white/60 font-medium">
-            Pay on Delivery
-          </span>
-        </div>
+        <div className="flex items-center gap-2"></div>
       </div>
     </footer>
   );

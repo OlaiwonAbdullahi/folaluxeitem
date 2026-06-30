@@ -15,7 +15,8 @@ import {
 } from "@hugeicons/core-free-icons";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
+  const { items, removeItem, updateQuantity, totalPrice, totalItems } =
+    useCart();
 
   const finalTotal = totalPrice;
 
@@ -28,12 +29,17 @@ export default function CartPage() {
           <div className="max-w-7xl mx-auto">
             <h1
               className="text-5xl text-[var(--brand-dark)]"
-              style={{ fontFamily: "var(--font-heading), Georgia, serif", fontWeight: 500 }}
+              style={{
+                fontFamily: "var(--font-heading), Georgia, serif",
+                fontWeight: 500,
+              }}
             >
               Your Bag
             </h1>
             <p className="text-[var(--brand-muted)] mt-2">
-              {totalItems === 0 ? "Empty" : `${totalItems} item${totalItems > 1 ? "s" : ""}`}
+              {totalItems === 0
+                ? "Empty"
+                : `${totalItems} item${totalItems > 1 ? "s" : ""}`}
             </p>
           </div>
         </div>
@@ -50,8 +56,12 @@ export default function CartPage() {
                 />
               </div>
               <div>
-                <h2 className="font-heading text-3xl text-[var(--brand-dark)] mb-2">Nothing here yet</h2>
-                <p className="text-[var(--brand-muted)]">Your bag is empty. Time to fill it up.</p>
+                <h2 className="font-heading text-3xl text-[var(--brand-dark)] mb-2">
+                  Nothing here yet
+                </h2>
+                <p className="text-[var(--brand-muted)]">
+                  Your bag is empty. Time to fill it up.
+                </p>
               </div>
               <Link
                 href="/shop"
@@ -73,9 +83,10 @@ export default function CartPage() {
                     <div
                       className="w-24 h-28 rounded-xl overflow-hidden flex-shrink-0 relative"
                       style={{
-                        background: item.product.category === "bags"
-                          ? "linear-gradient(135deg,#fce8ef,#fadde5)"
-                          : "linear-gradient(135deg,#f5eaf0,#f9dde8)",
+                        background:
+                          item.product.category === "bags"
+                            ? "linear-gradient(135deg,#fce8ef,#fadde5)"
+                            : "linear-gradient(135deg,#f5eaf0,#f9dde8)",
                       }}
                     >
                       <Image
@@ -101,7 +112,9 @@ export default function CartPage() {
                             {item.product.name}
                           </Link>
                           <p className="text-xs text-[var(--brand-muted)] mt-1">
-                            {item.selectedColor}{item.selectedSize !== "One Size" && ` · ${item.selectedSize}`}
+                            {item.selectedColor}
+                            {item.selectedSize !== "One Size" &&
+                              ` · ${item.selectedSize}`}
                           </p>
                         </div>
                         <p className="font-semibold text-[var(--brand-rose)] whitespace-nowrap">
@@ -114,22 +127,52 @@ export default function CartPage() {
                         <div className="flex items-center border border-[var(--border)] rounded-full overflow-hidden text-[var(--brand-dark)]">
                           <button
                             aria-label="Decrease quantity"
-                            onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.product.id,
+                                item.selectedSize,
+                                item.selectedColor,
+                                item.quantity - 1,
+                              )
+                            }
                             className="w-9 h-9 flex items-center justify-center hover:bg-[var(--brand-blush)] transition-colors"
                           >
-                            <HugeiconsIcon icon={MinusSignIcon} size={16} strokeWidth={2} />
+                            <HugeiconsIcon
+                              icon={MinusSignIcon}
+                              size={16}
+                              strokeWidth={2}
+                            />
                           </button>
-                          <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                          <span className="w-8 text-center text-sm font-medium">
+                            {item.quantity}
+                          </span>
                           <button
                             aria-label="Increase quantity"
-                            onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.product.id,
+                                item.selectedSize,
+                                item.selectedColor,
+                                item.quantity + 1,
+                              )
+                            }
                             className="w-9 h-9 flex items-center justify-center hover:bg-[var(--brand-blush)] transition-colors"
                           >
-                            <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+                            <HugeiconsIcon
+                              icon={PlusSignIcon}
+                              size={16}
+                              strokeWidth={2}
+                            />
                           </button>
                         </div>
                         <button
-                          onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor)}
+                          onClick={() =>
+                            removeItem(
+                              item.product.id,
+                              item.selectedSize,
+                              item.selectedColor,
+                            )
+                          }
                           className="text-xs text-[var(--brand-muted)] hover:text-red-500 transition-colors underline underline-offset-2"
                         >
                           Remove
@@ -145,7 +188,10 @@ export default function CartPage() {
                 <div className="bg-white border border-[var(--border)] rounded-2xl p-6 space-y-4">
                   <h2
                     className="text-2xl text-[var(--brand-dark)]"
-                    style={{ fontFamily: "var(--font-heading), Georgia, serif", fontWeight: 600 }}
+                    style={{
+                      fontFamily: "var(--font-heading), Georgia, serif",
+                      fontWeight: 600,
+                    }}
                   >
                     Order Summary
                   </h2>
@@ -161,7 +207,9 @@ export default function CartPage() {
                     <hr className="border-[var(--border)]" />
                     <div className="flex justify-between text-base font-semibold text-[var(--brand-dark)]">
                       <span>Total</span>
-                      <span className="text-[var(--brand-rose)]">{formatPrice(finalTotal)}</span>
+                      <span className="text-[var(--brand-rose)]">
+                        {formatPrice(finalTotal)}
+                      </span>
                     </div>
                   </div>
                   <Link
@@ -180,16 +228,21 @@ export default function CartPage() {
                 </div>
 
                 {/* Payment Methods */}
-                <div className="bg-[var(--brand-blush)]/60 border border-[var(--border)] rounded-2xl p-4">
+                <div className="bg-[var(--brand-blush)]/60 hidden border border-[var(--border)] rounded-2xl p-4">
                   <p className="text-xs font-semibold tracking-widest uppercase text-[var(--brand-muted)] mb-3">
                     Payment Methods
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {["Bank Transfer", "Pay on Delivery", "WhatsApp Order"].map((m) => (
-                      <span key={m} className="px-3 py-1.5 bg-white rounded-full text-xs border border-[var(--border)] text-[var(--brand-dark)]">
-                        {m}
-                      </span>
-                    ))}
+                    {["Bank Transfer", "Pay on Delivery", "WhatsApp Order"].map(
+                      (m) => (
+                        <span
+                          key={m}
+                          className="px-3 py-1.5 bg-white rounded-full text-xs border border-[var(--border)] text-[var(--brand-dark)]"
+                        >
+                          {m}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
               </div>

@@ -62,6 +62,23 @@ export async function verifyCheckout(
   return (json?.data as Record<string, unknown>) ?? null;
 }
 
+// Pull the gross amount the customer actually paid out of a webhook/verify
+// payload. QuestPay reports gross under payment.amountPaid or fees.grossAmount;
+// data.amount is the net (post-fee) figure, so it is only a last resort.
+export function extractGrossAmount(
+  data: Record<string, unknown> | null | undefined,
+): number | null {
+  if (!data) return null;
+  const payment = data.payment as Record<string, unknown> | undefined;
+  const fees = data.fees as Record<string, unknown> | undefined;
+  const candidates = [payment?.amountPaid, fees?.grossAmount, data.amount];
+  for (const c of candidates) {
+    const n = typeof c === "string" ? Number(c) : c;
+    if (typeof n === "number" && Number.isFinite(n) && n > 0) return n;
+  }
+  return null;
+}
+
 // Verify the HMAC-SHA256 webhook signature against the raw request body using a
 // timing-safe comparison. The secret is the Questpay API key.
 export function verifyWebhookSignature(

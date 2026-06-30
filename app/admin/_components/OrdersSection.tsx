@@ -8,6 +8,7 @@ import type { OrderStatus } from "./types";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import OrderDetailsDialog from "./OrderDetailsDialog";
 
 const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
   paid: { label: "Paid", cls: "bg-emerald-50 text-emerald-700" },
@@ -22,6 +23,7 @@ export default function OrdersSection() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -126,7 +128,11 @@ export default function OrdersSection() {
                   const pay = PAYMENT_BADGE[order.paymentStatus] ?? PAYMENT_BADGE.pending;
                   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
                   return (
-                    <tr key={order._id} className="hover:bg-zinc-50/60 transition-colors">
+                    <tr
+                      key={order._id}
+                      onClick={() => setSelectedOrder(order)}
+                      className="hover:bg-zinc-50/60 transition-colors cursor-pointer"
+                    >
                       <td className="px-5 py-4 font-mono text-[11px] text-zinc-400">
                         {order.orderNumber}
                       </td>
@@ -172,6 +178,11 @@ export default function OrdersSection() {
           Showing {filtered.length} of {orders.length} orders
         </div>
       </div>
+
+      <OrderDetailsDialog
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
     </div>
   );
 }
